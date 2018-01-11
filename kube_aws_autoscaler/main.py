@@ -332,7 +332,10 @@ def resize_auto_scaling_groups(autoscaling, asg_size: dict, ready_nodes_by_asg: 
                 logger.info('**DRY-RUN**: not performing any change')
             else:
                 try:
-                    autoscaling.set_desired_capacity(AutoScalingGroupName=asg_name, DesiredCapacity=desired_capacity)
+                    if desired_capacity < asg['DesiredCapacity']:
+                        autoscaling.terminate_instance_in_auto_scaling_group(InstanceId=asg['Instances'][0]['InstanceId'], ShouldDecrementDesiredCapacity=True)
+                    else:
+                        autoscaling.set_desired_capacity(AutoScalingGroupName=asg_name, DesiredCapacity=desired_capacity)
                 except Exception:
                     logger.exception('Failed to set desired capacity {} for ASG {}'.format(desired_capacity, asg_name))
                     raise
